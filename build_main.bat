@@ -1,0 +1,1 @@
+mbed compile -j0 -t GCC_ARM -m K64F --build BUILD_MAIN//K64F/GCC_ARM -DMAIN_ADDR=0x10000 -l custom\MK64FN1M0xxx12_application.ld
