@@ -20,7 +20,7 @@
         "asm": [],
         "c": ["--md", "--no_depend_system_headers", "--c99", "-D__ASSERT_MSG"],
         "cxx": ["--cpp", "--no_rtti", "--no_vla"],
-        "ld": []
+        "ld": ["--predefine=\"-DMBED_APP_OFFSET=0x00010000\"", "--predefine=\"-DMBED_APP_SIZE=0x000F0000\""]
     },
     "uARM": {
         "common": ["-c", "--gnu", "-Otime", "--split_sections",
