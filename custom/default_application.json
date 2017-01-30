@@ -39,6 +39,7 @@
         "asm": [],
         "c": ["--vla"],
         "cxx": ["--guard_calls", "--no_static_destruction"],
-        "ld": ["--skip_dynamic_initialization", "--threaded_lib"]
+        "ld": ["--skip_dynamic_initialization", "--threaded_lib",
+               "--config_def MBED_APP_OFFSET=0x00010000", "--config_def MBED_APP_SIZE=0x000F0000"]
     }
 }

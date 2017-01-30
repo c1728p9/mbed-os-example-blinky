@@ -39,6 +39,7 @@
         "asm": [],
         "c": ["--vla"],
         "cxx": ["--guard_calls", "--no_static_destruction"],
-        "ld": ["--skip_dynamic_initialization", "--threaded_lib", "--redirect main=_Z15main_bootloaderv"]
+        "ld": ["--skip_dynamic_initialization", "--threaded_lib", "--redirect main=_Z15main_bootloaderv",
+               "--config_def MBED_APP_OFFSET=0x00000000", "--config_def MBED_APP_SIZE=0x00010000"]
     }
 }
