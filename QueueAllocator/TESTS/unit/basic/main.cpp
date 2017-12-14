@@ -35,8 +35,10 @@ void test_case_basic()
         memset(data, 0x55, i);
         qa.enque(data);
 
-        void *new_data = qa.get();
-        TEST_ASSERT_EQUAL(data, new_data);
+        void *new_data = NULL;
+        size_t size = 0;
+        TEST_ASSERT_TRUE(qa.get(new_data, size));
+        TEST_ASSERT_EQUAL(i, size);
         for (int j = 0; j < i; j++) {
             TEST_ASSERT_EQUAL(0x55, *((uint8_t*)new_data + j));
         }

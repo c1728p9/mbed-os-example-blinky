@@ -21,10 +21,10 @@ enum entry_state_t {
 };
 
 struct buffer_entry_t {
-    uint32_t size;
+    size_t size;
     entry_state_t state;
 };
-static const uint32_t align = sizeof(void*);
+static const size_t align = sizeof(void*);
 
 static void *write_entry(uint8_t *buf, uint32_t pos, uint32_t size, entry_state_t state)
 {
@@ -34,16 +34,16 @@ static void *write_entry(uint8_t *buf, uint32_t pos, uint32_t size, entry_state_
     return (void*)(entry + 1);
 }
 
-static uint32_t align_up(uint32_t value)
+static size_t align_up(size_t value)
 {
-    uint32_t remainder = value % align;
+    size_t remainder = value % align;
     if (remainder) {
         value = value + (align - remainder);
     }
     return value;
 }
 
-QueueAllocator::QueueAllocator(uint32_t size)
+QueueAllocator::QueueAllocator(size_t size)
     : _buf(NULL), _size(size), _head(0), _tail(0), _error(false)
 {
     _buf = new uint8_t[size]();
@@ -55,11 +55,11 @@ QueueAllocator::~QueueAllocator()
     _buf = NULL;
 }
 
-void *QueueAllocator::allocate(uint32_t size)
+void *QueueAllocator::allocate(size_t size)
 {
-    uint32_t total_size = size + sizeof(buffer_entry_t);
-    uint32_t head = _head;
-    uint32_t tail = _tail;
+    size_t total_size = size + sizeof(buffer_entry_t);
+    size_t head = _head;
+    size_t tail = _tail;
 
     if (tail >= head) {
         uint32_t free_bytes = (head + _size) - tail - align;
@@ -101,10 +101,12 @@ void QueueAllocator::enque(void *allocation)
     entry->state = ENTRY_READY;
 }
 
-void *QueueAllocator::get()
+bool QueueAllocator::get(void *&data, size_t &size)
 {
+    data = NULL;
+    size = 0;
     if (_head == _tail) {
-        return NULL;
+        return false;
     }
     buffer_entry_t *entry = (buffer_entry_t*)(_buf + _head);
     if (entry->state == ENTRY_SKIP) {
@@ -113,10 +115,12 @@ void *QueueAllocator::get()
     }
 
     if (entry->state != ENTRY_READY) {
-        return NULL;
+        return false;
     }
 
-    return (void*)(entry + 1);
+    data = (void*)(entry + 1);
+    size = entry->size;
+    return true;
 }
 
 void QueueAllocator::free(void *allocation)

@@ -19,17 +19,17 @@
 
 class QueueAllocator {
 public:
-    QueueAllocator(uint32_t size);
+    QueueAllocator(size_t size);
     ~QueueAllocator();
-    void *allocate(uint32_t size);
+    void *allocate(size_t size);
     void enque(void *allocation);
-    void *get();
+    bool get(void *&data, size_t &size);
     void free(void *allocation);
 protected:
     uint8_t *_buf;
-    uint8_t _size;
-    uint32_t _head;
-    uint32_t _tail;
+    size_t _size;
+    size_t _head;
+    size_t _tail;
     bool _error;
 };
 
