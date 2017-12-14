@@ -24,6 +24,7 @@ struct buffer_entry_t {
     uint32_t size;
     entry_state_t state;
 };
+static const uint32_t align = sizeof(void*);
 
 static void *write_entry(uint8_t *buf, uint32_t pos, uint32_t size, entry_state_t state)
 {
@@ -35,9 +36,9 @@ static void *write_entry(uint8_t *buf, uint32_t pos, uint32_t size, entry_state_
 
 static uint32_t align_up(uint32_t value)
 {
-    uint32_t remainder = value % sizeof(void*);
+    uint32_t remainder = value % align;
     if (remainder) {
-        value = value + (sizeof(void*) - remainder);
+        value = value + (align - remainder);
     }
     return value;
 }
@@ -61,7 +62,7 @@ void *QueueAllocator::allocate(uint32_t size)
     uint32_t tail = _tail;
 
     if (tail >= head) {
-        uint32_t free_bytes = (head + _size) - tail - 1;
+        uint32_t free_bytes = (head + _size) - tail - align;
         if (total_size > free_bytes) {
             // Not enough free space
             _error = true;
@@ -83,7 +84,7 @@ void *QueueAllocator::allocate(uint32_t size)
     }
 
     // One free region
-    uint32_t free_middle = tail - head - 1;
+    uint32_t free_middle = tail - head - align;
     if (total_size <= free_middle) {
         _tail = align_up(tail + total_size);
         return write_entry(_buf, tail, size, ENTRY_ALLOCATED);

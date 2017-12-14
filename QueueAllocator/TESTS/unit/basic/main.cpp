@@ -23,10 +23,13 @@
 #include "QueueAllocator.h"
 
 using namespace utest::v1;
+#define TEST_SIZE   64
+#define ALIGN_SIZE  sizeof(void*)
+#define OVERHEAD    8
 
 void test_case_basic()
 {
-    QueueAllocator qa(64);
+    QueueAllocator qa(TEST_SIZE);
     for (int i = 0; i < 20; i++) {
         void *data = qa.allocate(i);
         memset(data, 0x55, i);
@@ -34,21 +37,47 @@ void test_case_basic()
 
         void *new_data = qa.get();
         TEST_ASSERT_EQUAL(data, new_data);
+        for (int j = 0; j < i; j++) {
+            TEST_ASSERT_EQUAL(0x55, *((uint8_t*)new_data + j));
+        }
         qa.free(new_data);
     }
 }
 
+/*
+ * Test the edge case of the biggest allocation
+ */
 void test_case_big_allocation()
 {
-    QueueAllocator qa(64);
+    QueueAllocator qa(TEST_SIZE);
 
-    TEST_ASSERT_EQUAL(0, qa.allocate(100));
-    TEST_ASSERT_EQUAL(0, qa.allocate(64));
-    TEST_ASSERT_EQUAL(0, qa.allocate(60));
-    TEST_ASSERT_EQUAL(0, qa.allocate(56));
-    TEST_ASSERT_NOT_EQUAL(0, qa.allocate(55));
+    TEST_ASSERT_EQUAL(0, qa.allocate(TEST_SIZE * 2));
+    TEST_ASSERT_EQUAL(0, qa.allocate(TEST_SIZE));
+    TEST_ASSERT_EQUAL(0, qa.allocate(TEST_SIZE - OVERHEAD - ALIGN_SIZE + 1));
+    TEST_ASSERT_NOT_EQUAL(0, qa.allocate(TEST_SIZE - OVERHEAD - ALIGN_SIZE));
+
+    // Further allocations should fail
+    TEST_ASSERT_EQUAL(0, qa.allocate(0));
 }
 
+/*
+ *
+ */
+void test_no_end_space()
+{
+    QueueAllocator qa(TEST_SIZE);
+
+    // Allocate half of the queue but don't free it
+    TEST_ASSERT_NOT_EQUAL(0, qa.allocate(TEST_SIZE / 2 - OVERHEAD));
+
+    // Attempt to allocate the rest
+    TEST_ASSERT_EQUAL(0, qa.allocate(TEST_SIZE / 2 - OVERHEAD));
+    TEST_ASSERT_EQUAL(0, qa.allocate(TEST_SIZE / 2 - OVERHEAD - ALIGN_SIZE + 1));
+    TEST_ASSERT_NOT_EQUAL(0, qa.allocate(TEST_SIZE / 2 - OVERHEAD - ALIGN_SIZE));
+
+    // Further allocations should fail
+    TEST_ASSERT_EQUAL(0, qa.allocate(0));
+}
 //void test_case_alloc_not_ready()
 //{
 //    QueueAllocator qa(64);
@@ -58,6 +87,7 @@ void test_case_big_allocation()
 Case cases[] = {
     Case("Basic functions", test_case_basic),
     Case("Big allocation", test_case_big_allocation),
+    Case("No end space", test_no_end_space),
     //Case("Allocation not ready", test_case_alloc_not_ready),
     //Case("Cleanup memory leak", test_case_memory_leak),
 
