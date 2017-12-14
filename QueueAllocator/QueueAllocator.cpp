@@ -63,7 +63,6 @@ void *QueueAllocator::allocate(uint32_t size)
     if (tail >= head) {
         uint32_t free_bytes = (head + _size) - tail - 1;
         if (total_size > free_bytes) {
-            printf("1\n");
             // Not enough free space
             _error = true;
             return NULL;
@@ -75,7 +74,6 @@ void *QueueAllocator::allocate(uint32_t size)
             if (_tail >= _size) {
                 _tail = 0;
             }
-            printf("2\n");
             return write_entry(_buf, tail, size, ENTRY_ALLOCATED);
         }
 
@@ -88,12 +86,10 @@ void *QueueAllocator::allocate(uint32_t size)
     uint32_t free_middle = tail - head - 1;
     if (total_size <= free_middle) {
         _tail = align_up(tail + total_size);
-        printf("3\n");
         return write_entry(_buf, tail, size, ENTRY_ALLOCATED);
     }
 
     _error = true;
-    printf("4\n");
     return NULL;
 }
 
@@ -109,22 +105,29 @@ void *QueueAllocator::get()
     if (_head == _tail) {
         return NULL;
     }
-    return (void*)((buffer_entry_t*)(_buf + _head) + 1);
+    buffer_entry_t *entry = (buffer_entry_t*)(_buf + _head);
+    if (entry->state == ENTRY_SKIP) {
+        free((void*)(entry + 1));
+        entry = (buffer_entry_t*)(_buf + _head);
+    }
+
+    if (entry->state != ENTRY_READY) {
+        return NULL;
+    }
+
+    return (void*)(entry + 1);
 }
 
 void QueueAllocator::free(void *allocation)
 {
     buffer_entry_t *entry = (buffer_entry_t*)allocation - 1;
-    MBED_ASSERT(entry->state == ENTRY_READY);
     MBED_ASSERT((void*)entry == (void*)(_buf + _head));
-    printf("free\n");
     do {
         _head = align_up(_head + entry->size + sizeof(buffer_entry_t));
         if (_head >= _size) {
             _head = 0;
         }
         entry = (buffer_entry_t *)(_buf + _head);
-        printf(" loop\n");
-    } while ((_head != _tail) && entry->state == ENTRY_SKIP);
+    } while ((_head != _tail) && (entry->state == ENTRY_SKIP));
 }
 

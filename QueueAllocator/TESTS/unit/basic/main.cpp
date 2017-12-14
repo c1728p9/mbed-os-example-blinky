@@ -28,9 +28,10 @@ void test_case_basic()
 {
     QueueAllocator qa(64);
     for (int i = 0; i < 20; i++) {
-        printf("Loop %i\n", i);
-        void *data = qa.allocate(1);
+        void *data = qa.allocate(i);
+        memset(data, 0x55, i);
         qa.enque(data);
+
         void *new_data = qa.get();
         TEST_ASSERT_EQUAL(data, new_data);
         qa.free(new_data);
@@ -41,12 +42,22 @@ void test_case_big_allocation()
 {
     QueueAllocator qa(64);
 
+    TEST_ASSERT_EQUAL(0, qa.allocate(100));
+    TEST_ASSERT_EQUAL(0, qa.allocate(64));
+    TEST_ASSERT_EQUAL(0, qa.allocate(60));
+    TEST_ASSERT_EQUAL(0, qa.allocate(56));
+    TEST_ASSERT_NOT_EQUAL(0, qa.allocate(55));
 }
 
+//void test_case_alloc_not_ready()
+//{
+//    QueueAllocator qa(64);
+//    void *
+//}
 
 Case cases[] = {
     Case("Basic functions", test_case_basic),
-    //Case("Big allocation", test_case_big_allocation),
+    Case("Big allocation", test_case_big_allocation),
     //Case("Allocation not ready", test_case_alloc_not_ready),
     //Case("Cleanup memory leak", test_case_memory_leak),
 
