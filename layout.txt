@@ -1,0 +1,3 @@
+bootloader,0x10000
+main,*
+data_store,0x1000
