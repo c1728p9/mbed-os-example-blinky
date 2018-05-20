@@ -1,0 +1,18 @@
+template<{{template_typenames}}>
+struct AllArgs<{{template_specilization}}> {
+    typedef AllArgs<{{template_specilization}}> Self;
+    {{template_fields}}
+
+    AllArgs({{ctor_args}})
+        : {{ctor_values}}  {}
+
+    static void copy(void *dest, void *src) {
+        new (dest) Self(*(Self*)src);
+    }
+
+    static void call_and_destroy(void *data) {
+        Self *s = static_cast<Self*>(data);
+        {{call_and_destroy}};
+        s->~Self();
+    }
+};
