@@ -1,0 +1,14 @@
+template <typename R, {{typename_args}}, {{typename_binds}}>
+struct PartialArgs<R({{args}}), {{binds}}> {
+    typedef AllArgs<void(*)({{binds}}, {{args}}), {{binds}}, {{args}}> AllArgs;
+    AllArgs all;
+
+    template <typename F, {{ctor_typename_args}}>
+    PartialArgs(F f, {{ctor_args}}): all(f, {{ctor_values}}) { }
+
+    void set(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) {
+    {%- for line in set_code %}
+        {{line}}
+    {%- endfor %}
+    }
+};
