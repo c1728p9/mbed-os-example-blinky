@@ -46,6 +46,24 @@ struct AllArgs {
         *(object_t*)(&this->object) = obj;
     }
 
+    template<typename T, typename R>
+    AllArgs(volatile T *obj, R (T::*method)(A0, A1, A2) volatile, A0 a0=A0(), A1 a1=A1(), A2 a2=A2()): a0(a0), a1(a1), a2(a2)
+    {
+        typedef R (T::*method_t)(A0, A1, A2) volatile;
+        typedef volatile T * object_t;
+        *(method_t*)(&this->function) = method;
+        *(object_t*)(&this->object) = obj;
+    }
+
+    template<typename T, typename R>
+    AllArgs(const volatile T *obj, R (T::*method)(A0, A1, A2) const volatile, A0 a0=A0(), A1 a1=A1(), A2 a2=A2()): a0(a0), a1(a1), a2(a2)
+    {
+        typedef R (T::*method_t)(A0, A1, A2) const volatile;
+        typedef const volatile T * object_t;
+        *(method_t*)(&this->function) = method;
+        *(object_t*)(&this->object) = obj;
+    }
+
     template <typename T0, typename T1=void>
     struct ops;
 
@@ -90,31 +108,8 @@ struct AllArgs {
         }
     };
 
-//    template <typename T, typename R>       ///BAD
-//    struct ops<const T*, R (T::*)(A0, A1, A2) const> {
-//        static void copy(void *_dest, void *_src)
-//        {
-//            Self *dest = (Self*)_dest;
-//            Self *src = (Self*)_src;
-//            new (dest) Self(*(Self*)src);
-//            dest->function = src->function;
-//            dest->object = src->object;
-//        }
-//
-//        static void call(void *data) {
-//            typedef R (T::*method_t)(A0, A1, A2) const;
-//            typedef const T * object_t;
-//            Self *s = static_cast<Self*>(data);
-//            object_t object = (object_t)s->object;
-//            method_t method = *((method_t*)&s->function);
-//            (object->*method)(s->a0, s->a1, s->a2);
-//            s->~Self();
-//        }
-//    };
-
-
     template <typename R, typename T, typename U>
-    struct ops<const U*, R (T::*)(A0, A1, A2) const> {
+    struct ops<U*, R (T::*)(A0, A1, A2) const> {
         static void copy(void *_dest, void *_src)
         {
             Self *dest = (Self*)_dest;
@@ -135,103 +130,52 @@ struct AllArgs {
         }
     };
 
-//    template <typename T, typename R>
-//    struct ops<volatile T*, R (T::*)(A0, A1, A2) volatile> {
-//        static void copy(void *_dest, void *_src)
-//        {
-//            Self *dest = (Self*)_dest;
-//            Self *src = (Self*)_src;
-//            new (dest) Self(*(Self*)src);
-//            dest->function = src->function;
-//            dest->object = src->object;
-//        }
-//
-//        static void call(void *data) {
-//            typedef R (T::*method_t)(A0, A1, A2) volatile;
-//            typedef volatile T * object_t;
-//            Self *s = static_cast<Self*>(data);
-//            object_t object = (object_t)s->object;
-//            method_t method = *((method_t*)&s->function);
-//            (object->*method)(s->a0, s->a1, s->a2);
-//            s->~Self();
-//        }
-//    };
-//
-//    template <typename T, typename R>
-//    struct ops<const volatile T*, R (T::*)(A0, A1, A2) const volatile> {
-//        static void copy(void *_dest, void *_src)
-//        {
-//            Self *dest = (Self*)_dest;
-//            Self *src = (Self*)_src;
-//            new (dest) Self(*(Self*)src);
-//            dest->function = src->function;
-//            dest->object = src->object;
-//        }
-//
-//        static void call(void *data) {
-//            typedef R (T::*method_t)(A0, A1, A2) const volatile;
-//            typedef const volatile T * object_t;
-//            Self *s = static_cast<Self*>(data);
-//            object_t object = (object_t)s->object;
-//            method_t method = *((method_t*)&s->function);
-//            (object->*method)(s->a0, s->a1, s->a2);
-//            s->~Self();
-//        }
-//    };
+    template <typename R, typename T, typename U>
+    struct ops<U*, R (T::*)(A0, A1, A2) volatile> {
+        static void copy(void *_dest, void *_src)
+        {
+            Self *dest = (Self*)_dest;
+            Self *src = (Self*)_src;
+            new (dest) Self(*(Self*)src);
+            dest->function = src->function;
+            dest->object = src->object;
+        }
+
+        static void call(void *data) {
+            typedef R (T::*method_t)(A0, A1, A2) volatile;
+            typedef volatile T * object_t;
+            Self *s = static_cast<Self*>(data);
+            object_t object = (object_t)s->object;
+            method_t method = *((method_t*)&s->function);
+            (object->*method)(s->a0, s->a1, s->a2);
+            s->~Self();
+        }
+    };
+
+    template <typename R, typename T, typename U>
+    struct ops<U*, R (T::*)(A0, A1, A2) const volatile> {
+        static void copy(void *_dest, void *_src)
+        {
+            Self *dest = (Self*)_dest;
+            Self *src = (Self*)_src;
+            new (dest) Self(*(Self*)src);
+            dest->function = src->function;
+            dest->object = src->object;
+        }
+
+        static void call(void *data) {
+            typedef R (T::*method_t)(A0, A1, A2) const volatile;
+            typedef const volatile T * object_t;
+            Self *s = static_cast<Self*>(data);
+            object_t object = (object_t)s->object;
+            method_t method = *((method_t*)&s->function);
+            (object->*method)(s->a0, s->a1, s->a2);
+            s->~Self();
+        }
+    };
 
 };
 
-//template<typename A0, typename A1, typename A2>
-//struct AllArgs {
-//    typedef AllArgs<A0, A1, A2> Self;
-//    function_storage_t function;
-//    object_storage_t object;
-//
-//    A0 a0; A1 a1; A2 a2;
-//
-//    template<typename T, typename R>
-//    AllArgs(T *obj, R (T::*method)(), A0 a0=A0(), A1 a1=A1(), A2 a2=A2()): a0(a0), a1(a1), a2(a2)
-//    {
-//        typedef R (T::*method_t)();
-//        typedef T * object_t;
-//        *(method_t*)(&this->function) = method;
-//        *(object_t*)(&this->object) = obj;
-//    }
-//
-//    template<typename T, typename R>
-//    AllArgs(const T *obj, R (T::*method)() const, A0 a0=A0(), A1 a1=A1(), A2 a2=A2()): a0(a0), a1(a1), a2(a2)
-//    {
-//        typedef R (T::*method_t)() const;
-//        typedef const T * object_t;
-//        *(method_t*)(&this->function) = method;
-//        *(object_t*)(&this->object) = obj;
-//    }
-//
-//
-//    template<typename T, typename R>
-//    static void copy(void *_dest, void *_src)
-//    {
-//        typedef R (T::*method_t)();
-//        typedef T * object_t;
-//        Self *dest = (Self*)_dest;
-//        Self *src = (Self*)_src;
-//        new (dest) Self(*(Self*)src);
-//        *(method_t*)&dest->function = *(method_t)&src->function;
-//        *(object_t*)&dest->object = *(object_t)&src->object;
-//    }
-//
-//
-//    template<typename T, typename R>
-//    static void call(void *data) {
-//        typedef R (T::*method_t)();
-//        typedef T * object_t;
-//        Self *s = static_cast<Self*>(data);
-//        object_t object = (object_t)s->object;
-//        method_t method = *((method_t*)&s->function);
-//        object->*method(s->a0, s->a1, s->a2);
-//        s->~Self();
-//    }
-//};
 
 
 class Test {
@@ -244,11 +188,11 @@ public:
         printf("CLASS c: A %i B %i C %i\r\n", a, b, c);
     }
 
-    void print_test_args_v(int a, int b, int c) {
+    void print_test_args_v(int a, int b, int c) volatile {
         printf("CLASS v: A %i B %i C %i\r\n", a, b, c);
     }
 
-    void print_test_args_cv(int a, int b, int c) {
+    void print_test_args_cv(int a, int b, int c) const volatile {
         printf("CLASS cv: A %i B %i C %i\r\n", a, b, c);
     }
 
@@ -301,17 +245,18 @@ int main() {
     copy_function((void*)&args,sizeof(args), print_args);
 
     Test t;
-    Callback<void(int, int, int)> cb(&t, &Test::print_test_args_c);
+//    t.print_test_args_cv(1,2,3);
+    Callback<void(int, int, int)> cb(&t, &Test::print_test_args_cv);
 
     AllArgs<int, int, int> args2(&t, &Test::print_test_args, 9);
     call_function((void*)&args2, &t, &Test::print_test_args);
     copy_function((void*)&args2,sizeof(args2), &t, &Test::print_test_args);
 
-    Test t_c;
+    volatile Test t_c;
 
-    AllArgs<int, int, int> args3(&t_c, &Test::print_test_args_c, 9);
-    call_function((void*)&args3, &t_c, &Test::print_test_args_c);
-    copy_function((void*)&args3,sizeof(args3), &t_c, &Test::print_test_args_c);
+    AllArgs<int, int, int> args3(&t_c, &Test::print_test_args_cv, 9);
+    call_function((void*)&args3, &t_c, &Test::print_test_args_cv);
+    copy_function((void*)&args3,sizeof(args3), &t_c, &Test::print_test_args_cv);
 
 
     while (true) {
