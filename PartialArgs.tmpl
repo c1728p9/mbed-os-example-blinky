@@ -1,0 +1,13 @@
+template <{{template_typenames}}>
+struct PartialArgs<{{template_specilization}}> {
+    typedef AllArgs<{{all_args}}> All;
+    All all;
+
+    PartialArgs({{ctor_args}}): all({{ctor_values}}) { }
+
+    void set({{set_args}}) {
+    {%- for line in set_code %}
+        {{line}}
+    {%- endfor %}
+    }
+};
