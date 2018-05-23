@@ -36,8 +36,8 @@ def pad_list(values, pad, count):
     result.extend([pad] * pad_count)
     return result
 
-args_max = 10
-arg_combinations = [["A%i" % arg_num for arg_num in range(arg_count)] for arg_count in range(args_max + 1)]
+args_max = 12
+arg_combinations = [["A%i" % arg_num for arg_num in range(arg_count)] for arg_count in range(1, args_max)]
 
 
 class Namespace:

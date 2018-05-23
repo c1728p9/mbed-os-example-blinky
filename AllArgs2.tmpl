@@ -1,46 +1,83 @@
 
-struct __class;
-typedef union {
-    void (*_staticfunc)();
-    void (*_boundfunc)(__class*);
-    void (__class::*_methodfunc)();
-} function_storage_t;
-typedef void* object_storage_t;
-
 {%- for Ts in arg_combinations %}
 template<{{join(Ts, "typename {0!u}", ", ")}}>
-struct AllArgs<{{", ".join(pad_list(format("{0!u}", Ts), "void", args_max))}}> {
-    typedef AllArgs<{{", ".join(pad_list(format("{0!u}", Ts), "void", args_max))}}> Self;
-    function_storage_t function;
-    object_storage_t object;
+struct AllArgs<{{", ".join(format("{0!u}", Ts))}}> {
+    typedef AllArgs<{{", ".join(format("{0!u}", Ts))}}> Self;
+    {{" ".join(format("{0!u} {0!l};", Ts))}}                           
 
-    {{join(Ts, "{0!u} {0!l};", " ")}}                           
+    template<typename T0, typename T1>
+    AllArgs({{", ".join(["T0 a0=A0()", "T1 a1=A1()"] + format("{0!u} {0!l}={0!u}()", Ts[2:]))}}): {{", ".join(format("{0!l}({0!l})", Ts))}} {}
 
-{% for F in functions %}
-    AllArgs<{{F.ctor_template_specilizations.format(", ".join(format("{0!u}", Ts)))}}>({{", ".join(F.ctor_args + format("{0!u} {0!l}={0!u}()", Ts))}}): {{", ".join(format("{0!l}({0!l})", Ts))}}
-    {
-        {{F.create.format("this")}};
-    }
-{%- endfor %}
+    template <typename T, typename _>
+    struct Operations {
+        static void copy(void *_dest, void *_src)
+        {
+            new (_dest) Self(*(Self*)_src);
+        }
 
-{% for F in functions %}
-    template<{{", ".join(format("typename {0!u}", F.ctor_template_params))}}>
-    static void copy(void *dest, void *src)
-    {
-        Self *self_dest = (Self*)dest;
-        new (dest) Self(*(Self*)src);
-        {{F.copy.format("(Self*)dest", "(Self*)src")}};
-    }
-{%- endfor %}
+        static void call(void *data) {
+            Self *s = static_cast<Self*>(data);
+            s->a0({{", ".join(format("s->{0!l}", Ts[1:]))}});
+            s->~Self();
+        }
+    };
 
-{% for F in functions %}
-    template<{{", ".join(format("typename {0!u}", F.ctor_template_params))}}>
-    static void call(void *data) {
-        Self *s = static_cast<Self*>(data);
-        {{F.call}}({{join(Ts, "{0!l}", ", ")}});
-        {{F.destroy}};
-        s->~Self();
-    }
-{%- endfor %}
+    template <typename T, typename R, typename U>
+    struct Operations<T*, R (U::*)({{", ".join(format("{0!u}", Ts[2:]))}})> {
+        static void copy(void *_dest, void *_src)
+        {
+            new (_dest) Self(*(Self*)_src);
+        }
+
+        static void call(void *data) {
+            Self *s = static_cast<Self*>(data);
+            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            s->~Self();
+        }
+    };
+
+    template <typename T, typename R, typename U>
+    struct Operations<T, R (U::*)({{", ".join(format("{0!u}", Ts[2:]))}}) const> {
+        static void copy(void *_dest, void *_src)
+        {
+            new (_dest) Self(*(Self*)_src);
+        }
+
+        static void call(void *data) {
+            Self *s = static_cast<Self*>(data);
+            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            s->~Self();
+        }
+    };
+
+    template <typename T, typename R, typename U>
+    struct Operations<T, R (U::*)({{", ".join(format("{0!u}", Ts[2:]))}}) volatile> {
+        static void copy(void *_dest, void *_src)
+        {
+            new (_dest) Self(*(Self*)_src);
+        }
+
+        static void call(void *data) {
+            Self *s = static_cast<Self*>(data);
+            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            s->~Self();
+        }
+    };
+
+    template <typename T, typename R, typename U>
+    struct Operations<T, R (U::*)({{", ".join(format("{0!u}", Ts[2:]))}}) const volatile> {
+        static void copy(void *_dest, void *_src)
+        {
+            new (_dest) Self(*(Self*)_src);
+        }
+
+        static void call(void *data) {
+            Self *s = static_cast<Self*>(data);
+            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            s->~Self();
+        }
+    };
+
+    typedef Operations<A0, A1> ops;
 };
 {% endfor %}
