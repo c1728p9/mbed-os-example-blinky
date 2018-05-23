@@ -9,22 +9,22 @@ def repeat(val, count):
 def render_partial_args(template, bind_count, arg_count):
     
     def template_typenames(bind_count, arg_count):
-        builder = ["typename R", "typename F"]
-        builder.extend(repeat("typename B{}", bind_count))
+        builder = ["typename R"]
         builder.extend(repeat("typename A{}", arg_count))
+        builder.extend(repeat("typename B{}", bind_count))
         return ", ".join(builder)
     
     def template_specilization(bind_count, arg_count):
-        builder = ["R(%s)" % ", ".join(repeat("B{}", bind_count) + repeat("A{}", arg_count))]
-        builder.extend(["F", str(bind_count)])
+        builder = ["R(%s)" % ", ".join(repeat("A{}", arg_count))]
+        builder.extend(repeat("B{}", bind_count))
         return ", ".join(builder)
     
     def all_args(bind_count, arg_count):
-        builder = ["F"]
+        builder = []
         builder.extend(repeat("B{}", bind_count))
         builder.extend(repeat("A{}", arg_count))
         return ", ".join(builder)
-    assert all_args(5, 5) == "F, B0, B1, B2, B3, B4, A0, A1, A2, A3, A4"
+    assert all_args(5, 5) == "B0, B1, B2, B3, B4, A0, A1, A2, A3, A4"
     
     def ctor_typenames(bind_count, arg_count):
         return ""
@@ -37,16 +37,16 @@ def render_partial_args(template, bind_count, arg_count):
 #     assert ctor_typenames(5, 5) == "template <typename C0, typename C1, typename C2, typename C3, typename C4>"
     
     def ctor_args(bind_count, arg_count):
-        builder = ["F f"]
+        builder = []
         builder.extend(repeat("B{0} b{0}", bind_count))
         return ", ".join(builder)
-    assert ctor_args(5, 5) == "F f, B0 b0, B1 b1, B2 b2, B3 b3, B4 b4"
+    assert ctor_args(5, 5) == "B0 b0, B1 b1, B2 b2, B3 b3, B4 b4"
     
     def ctor_values(bind_count, arg_count):
-        builder = ["f"]
+        builder = []
         builder.extend(repeat("b{0}", bind_count))
         return ", ".join(builder)
-    assert ctor_values(5, 5) == "f, b0, b1, b2, b3, b4"
+    assert ctor_values(5, 5) == "b0, b1, b2, b3, b4"
     
     def set_args(bind_count, arg_count):
         builder = []

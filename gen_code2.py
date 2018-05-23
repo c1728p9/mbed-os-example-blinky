@@ -37,7 +37,7 @@ def pad_list(values, pad, count):
     return result
 
 args_max = 12
-arg_combinations = [["A%i" % arg_num for arg_num in range(arg_count)] for arg_count in range(1, args_max)]
+arg_combinations = [["B%i" % arg_num for arg_num in range(arg_count)] for arg_count in range(1, args_max)]
 
 
 class Namespace:

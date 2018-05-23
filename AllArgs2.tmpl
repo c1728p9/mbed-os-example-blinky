@@ -6,7 +6,7 @@ struct AllArgs<{{", ".join(format("{0!u}", Ts))}}> {
     {{" ".join(format("{0!u} {0!l};", Ts))}}                           
 
     template<typename T0, typename T1>
-    AllArgs({{", ".join(["T0 a0=A0()", "T1 a1=A1()"] + format("{0!u} {0!l}={0!u}()", Ts[2:]))}}): {{", ".join(format("{0!l}({0!l})", Ts))}} {}
+    AllArgs({{", ".join(["T0 b0=B0()", "T1 b1=B1()"] + format("{0!u} {0!l}={0!u}()", Ts[2:]))}}): {{", ".join(format("{0!l}({0!l})", Ts))}} {}
 
     template <typename T, typename _>
     struct Operations {
@@ -17,7 +17,7 @@ struct AllArgs<{{", ".join(format("{0!u}", Ts))}}> {
 
         static void call(void *data) {
             Self *s = static_cast<Self*>(data);
-            s->a0({{", ".join(format("s->{0!l}", Ts[1:]))}});
+            s->b0({{", ".join(format("s->{0!l}", Ts[1:]))}});
             s->~Self();
         }
     };
@@ -31,7 +31,7 @@ struct AllArgs<{{", ".join(format("{0!u}", Ts))}}> {
 
         static void call(void *data) {
             Self *s = static_cast<Self*>(data);
-            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            ((s->b0)->*(s->b1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
             s->~Self();
         }
     };
@@ -45,7 +45,7 @@ struct AllArgs<{{", ".join(format("{0!u}", Ts))}}> {
 
         static void call(void *data) {
             Self *s = static_cast<Self*>(data);
-            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            ((s->b0)->*(s->b1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
             s->~Self();
         }
     };
@@ -59,7 +59,7 @@ struct AllArgs<{{", ".join(format("{0!u}", Ts))}}> {
 
         static void call(void *data) {
             Self *s = static_cast<Self*>(data);
-            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            ((s->b0)->*(s->b1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
             s->~Self();
         }
     };
@@ -73,11 +73,11 @@ struct AllArgs<{{", ".join(format("{0!u}", Ts))}}> {
 
         static void call(void *data) {
             Self *s = static_cast<Self*>(data);
-            ((s->a0)->*(s->a1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
+            ((s->b0)->*(s->b1))({{", ".join(format("s->{0!l}", Ts[2:]))}});
             s->~Self();
         }
     };
 
-    typedef Operations<A0, A1> ops;
+    typedef Operations<B0, B1> ops;
 };
 {% endfor %}
